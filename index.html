@@ -64,7 +64,7 @@
     a { color: var(--primary); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .hidden { display: none !important; }
-    /* Dashboard styles */
+    
     .profile-card { text-align: center; padding: 20px; }
     .profile-pic {
       width: 100px; height: 100px; border-radius: 50%; background: #6a0dad;
@@ -86,7 +86,6 @@
   <main class="container">
     <div id="alerts"></div>
 
-    <!-- Login View -->
     <section id="loginView" class="card hidden">
       <h1>Welcome back</h1>
       <form id="loginForm" class="form">
@@ -98,8 +97,7 @@
       </form>
       <p class="muted">No account? <a href="#" id="gotoRegister">Create one</a>.</p>
     </section>
-
-    <!-- Register View -->
+    
     <section id="registerView" class="card hidden">
       <h1>Create an account</h1>
       <form id="registerForm" class="form">
@@ -114,7 +112,6 @@
       <p class="muted">Already have an account? <a href="#" id="gotoLogin">Log in</a>.</p>
     </section>
 
-    <!-- Dashboard View -->
     <section id="dashboardView" class="card hidden">
       <div class="success-msg">✅ Successfully logged in!</div>
       <div class="profile-card">
@@ -128,7 +125,6 @@
   </main>
 
   <script>
-    // ======= Utilities =======
     const alertsEl = document.getElementById('alerts');
     const loginView = document.getElementById('loginView');
     const registerView = document.getElementById('registerView');
@@ -147,7 +143,6 @@
     const show = (el) => el.classList.remove('hidden');
     const hide = (el) => el.classList.add('hidden');
 
-    // ======= Router & Nav =======
     function renderNav(activeView = null) {
       const current = getCurrentUser();
       if (current) {
@@ -173,7 +168,6 @@
       if (view === 'dashboard') { show(dashboardView); renderNav(); }
     }
 
-    // ======= Storage Layer =======
     const USERS_KEY = 'auth_app_users';
     const SESSION_KEY = 'auth_app_session';
     const getUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
@@ -182,7 +176,6 @@
     const clearSession = () => localStorage.removeItem(SESSION_KEY);
     const getCurrentUser = () => localStorage.getItem(SESSION_KEY);
 
-    // ======= Crypto helpers =======
     async function hashPassword(password, saltHex) {
       const enc = new TextEncoder();
       const salt = saltHex ? hexToBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
@@ -202,7 +195,6 @@
     const bytesToHex = (b) => [...b].map(x => x.toString(16).padStart(2, '0')).join('');
     const hexToBytes = (hex) => new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
 
-    // ======= Auth Actions =======
     async function register(email, password, confirmPassword) {
       const users = getUsers();
       if (!email || !password || !confirmPassword) return showAlert('All fields are required.');
@@ -237,7 +229,6 @@
       routeTo('login');
     }
 
-    // ======= Wire up forms & links =======
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const f = e.target;
@@ -256,7 +247,6 @@
     });
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
-    // ======= Init =======
     (function init() {
       const current = getCurrentUser();
       if (current) {
