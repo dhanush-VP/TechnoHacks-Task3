@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auth App (Single HTML)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f0f8ff;
+      --panel: #ffffff;
+      --text: #222;
+      --muted: #555;
+      --primary: #6a0dad;
+      --danger: #e63946;
+      --border: #ccc;
+      --success-bg: #e6ffed;
+      --success-border: #34a853;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #6a0dad; color: white;
+    }
+    .brand { font-weight: 700; font-size: 1.2rem; }
+    .nav-right { display: flex; gap: 10px; align-items: center; }
+    .user-email { font-size: 0.9rem; color: white; }
+    .container { max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .form { display: grid; gap: 10px; }
+    .form label { font-size: 0.9rem; color: var(--muted); }
+    .form input {
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: white; color: var(--text);
+    }
+    .btn {
+      padding: 10px 14px; border: none; border-radius: 8px;
+      cursor: pointer; font-weight: 600;
+    }
+    .btn.primary { background: var(--primary); color: white; }
+    .btn.danger { background: var(--danger); color: white; }
+    .btn.link { background: transparent; border: 1px solid white; color: white; }
+    .btn.active {
+      border: 2px solid yellow;
+      background: #fff;
+      color: var(--primary);
+    }
+    .alert {
+      padding: 12px 14px; border-radius: 8px; margin-bottom: 16px;
+    }
+    .alert.error { background: #fff3cd; border: 1px solid #ff0000; }
+    .alert.success { background: var(--success-bg); border: 1px solid var(--success-border); color: #14532d; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .hidden { display: none !important; }
+    /* Dashboard styles */
+    .profile-card { text-align: center; padding: 20px; }
+    .profile-pic {
+      width: 100px; height: 100px; border-radius: 50%; background: #6a0dad;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 2rem; margin: 0 auto 16px;
+    }
+    .success-msg {
+      background: var(--success-bg); border: 1px solid var(--success-border);
+      padding: 12px; border-radius: 8px; margin-bottom: 16px;
+      text-align: center; font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">AuthApp</div>
+    <div class="nav-right" id="navRight"><!-- Filled by JS --></div>
+  </nav>
+  <main class="container">
+    <div id="alerts"></div>
+
+    <!-- Login View -->
+    <section id="loginView" class="card hidden">
+      <h1>Welcome back</h1>
+      <form id="loginForm" class="form">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <button class="btn primary" type="submit">Log In</button>
+      </form>
+      <p class="muted">No account? <a href="#" id="gotoRegister">Create one</a>.</p>
+    </section>
+
+    <!-- Register View -->
+    <section id="registerView" class="card hidden">
+      <h1>Create an account</h1>
+      <form id="registerForm" class="form">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required />
+        <label>Password</label>
+        <input type="password" name="password" placeholder="At least 6 characters" required />
+        <label>Confirm Password</label>
+        <input type="password" name="confirmPassword" required />
+        <button class="btn primary" type="submit">Register</button>
+      </form>
+      <p class="muted">Already have an account? <a href="#" id="gotoLogin">Log in</a>.</p>
+    </section>
+
+    <!-- Dashboard View -->
+    <section id="dashboardView" class="card hidden">
+      <div class="success-msg">✅ Successfully logged in!</div>
+      <div class="profile-card">
+        <div class="profile-pic" id="profilePic">U</div>
+        <h2 id="welcomeMsg">Welcome!</h2>
+        <p class="muted">You’re logged in as <strong id="userEmail"></strong>.</p>
+        <p id="loginTime"></p>
+        <button class="btn danger" id="logoutBtn">Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ======= Utilities =======
+    const alertsEl = document.getElementById('alerts');
+    const loginView = document.getElementById('loginView');
+    const registerView = document.getElementById('registerView');
+    const dashboardView = document.getElementById('dashboardView');
+    const navRight = document.getElementById('navRight');
+    const userEmailStrong = document.getElementById('userEmail');
+    const welcomeMsg = document.getElementById('welcomeMsg');
+    const profilePic = document.getElementById('profilePic');
+    const loginTime = document.getElementById('loginTime');
+
+    const showAlert = (msg, type = 'error') => {
+      alertsEl.innerHTML = `<div class="alert ${type === 'error' ? 'error' : 'success'}">${msg}</div>`;
+      setTimeout(() => (alertsEl.innerHTML = ''), 2500);
+    };
+
+    const show = (el) => el.classList.remove('hidden');
+    const hide = (el) => el.classList.add('hidden');
+
+    // ======= Router & Nav =======
+    function renderNav(activeView = null) {
+      const current = getCurrentUser();
+      if (current) {
+        navRight.innerHTML = `
+          <span class="user-email">${current}</span>
+          <button class="btn danger" id="navLogout">Logout</button>
+        `;
+        document.getElementById('navLogout').addEventListener('click', logout);
+      } else {
+        navRight.innerHTML = `
+          <a class="btn link ${activeView === 'login' ? 'active' : ''}" href="#" id="navLogin">Login</a>
+          <a class="btn primary ${activeView === 'register' ? 'active' : ''}" href="#" id="navRegister">Register</a>
+        `;
+        document.getElementById('navLogin').addEventListener('click', () => routeTo('login'));
+        document.getElementById('navRegister').addEventListener('click', () => routeTo('register'));
+      }
+    }
+
+    function routeTo(view) {
+      hide(loginView); hide(registerView); hide(dashboardView);
+      if (view === 'login') { show(loginView); renderNav('login'); }
+      if (view === 'register') { show(registerView); renderNav('register'); }
+      if (view === 'dashboard') { show(dashboardView); renderNav(); }
+    }
+
+    // ======= Storage Layer =======
+    const USERS_KEY = 'auth_app_users';
+    const SESSION_KEY = 'auth_app_session';
+    const getUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+    const setUsers = (obj) => localStorage.setItem(USERS_KEY, JSON.stringify(obj));
+    const setSession = (email) => localStorage.setItem(SESSION_KEY, email);
+    const clearSession = () => localStorage.removeItem(SESSION_KEY);
+    const getCurrentUser = () => localStorage.getItem(SESSION_KEY);
+
+    // ======= Crypto helpers =======
+    async function hashPassword(password, saltHex) {
+      const enc = new TextEncoder();
+      const salt = saltHex ? hexToBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(password), 'PBKDF2', false, ['deriveBits', 'deriveKey']
+      );
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      const raw = await crypto.subtle.exportKey('raw', key);
+      return { hashHex: bytesToHex(new Uint8Array(raw)), saltHex: bytesToHex(salt) };
+    }
+    const bytesToHex = (b) => [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+    const hexToBytes = (hex) => new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+
+    // ======= Auth Actions =======
+    async function register(email, password, confirmPassword) {
+      const users = getUsers();
+      if (!email || !password || !confirmPassword) return showAlert('All fields are required.');
+      if (password.length < 6) return showAlert('Password must be at least 6 characters.');
+      if (password !== confirmPassword) return showAlert('Passwords do not match.');
+      if (users[email]) return showAlert('Email already registered.');
+      const { hashHex, saltHex } = await hashPassword(password);
+      users[email] = { hash: hashHex, salt: saltHex };
+      setUsers(users);
+      showAlert('Registration successful. Please log in.', 'success');
+      routeTo('login');
+    }
+
+    async function login(email, password) {
+      const users = getUsers();
+      const record = users[email];
+      if (!record) return showAlert('No account with that email.');
+      const { hashHex } = await hashPassword(password, record.salt);
+      if (hashHex !== record.hash) return showAlert('Incorrect password.');
+      setSession(email);
+      userEmailStrong.textContent = email;
+      profilePic.textContent = email.charAt(0).toUpperCase();
+      welcomeMsg.textContent = "Welcome, " + email.split('@')[0] + "!";
+      loginTime.textContent = "Login Time: " + new Date().toLocaleString();
+      showAlert('Logged in!', 'success');
+      routeTo('dashboard');
+    }
+
+    function logout() {
+      clearSession();
+      showAlert('Logged out.', 'success');
+      routeTo('login');
+    }
+
+    // ======= Wire up forms & links =======
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = e.target;
+      login(f.email.value.trim().toLowerCase(), f.password.value);
+    });
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = e.target;
+      register(f.email.value.trim().toLowerCase(), f.password.value, f.confirmPassword.value);
+    });
+    document.getElementById('gotoRegister').addEventListener('click', (e) => {
+      e.preventDefault(); routeTo('register');
+    });
+    document.getElementById('gotoLogin').addEventListener('click', (e) => {
+      e.preventDefault(); routeTo('login');
+    });
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    // ======= Init =======
+    (function init() {
+      const current = getCurrentUser();
+      if (current) {
+        userEmailStrong.textContent = current;
+        profilePic.textContent = current.charAt(0).toUpperCase();
+        welcomeMsg.textContent = "Welcome, " + current.split('@')[0] + "!";
+        loginTime.textContent = "Login Time: " + new Date().toLocaleString();
+        routeTo('dashboard');
+      } else {
+        routeTo('login');
+      }
+    })();
+  </script>
+</body>
+</html>
