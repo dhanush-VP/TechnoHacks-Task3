@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>User Authentication App (Single HTML)</title>
+  <title>User AuthApp (Single HTML)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -64,7 +64,7 @@
     a { color: var(--primary); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .hidden { display: none !important; }
-    
+
     .profile-card { text-align: center; padding: 20px; }
     .profile-pic {
       width: 100px; height: 100px; border-radius: 50%; background: #6a0dad;
@@ -80,14 +80,14 @@
 </head>
 <body>
   <nav class="nav">
-    <div class="brand">AuthApp</div>
-    <div class="nav-right" id="navRight"><!-- Filled by JS --></div>
+    <div class="brand">User Authentication App</div>
+    <div class="nav-right" id="navRight"></div>
   </nav>
   <main class="container">
     <div id="alerts"></div>
 
     <section id="loginView" class="card hidden">
-      <h1>Welcome back</h1>
+      <h1>Welcome </h1>
       <form id="loginForm" class="form">
         <label>Email</label>
         <input type="email" name="email" placeholder="you@example.com" required />
@@ -97,7 +97,7 @@
       </form>
       <p class="muted">No account? <a href="#" id="gotoRegister">Create one</a>.</p>
     </section>
-    
+
     <section id="registerView" class="card hidden">
       <h1>Create an account</h1>
       <form id="registerForm" class="form">
@@ -246,7 +246,6 @@
       e.preventDefault(); routeTo('login');
     });
     document.getElementById('logoutBtn').addEventListener('click', logout);
-
     (function init() {
       const current = getCurrentUser();
       if (current) {
